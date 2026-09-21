@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>Computer Pulse - Advanced Image Processing Engine</title>
+ <style>
+ body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 20px; background: #f4f6f9;
+color: #333; }
+ h2 { color: #0056b3; border-bottom: 2px solid #0056b3; padding-bottom: 8px; }
+ .container { display: flex; gap: 20px; flex-wrap: wrap; }
+ .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px
+rgba(0,0,0,0.1); flex: 1; min-width: 320px; }
+ canvas { max-width: 100%; height: auto; border: 1px solid #ccc; margin-top: 10px;
+background: #eee; }
+ .btn { background: #0056b3; color: white; border: none; padding: 8px 12px; borderradius: 4px; cursor: pointer; margin: 4px 2px; }
+ .btn:hover { background: #003d80; }
+ textarea { width: 100%; height: 180px; font-family: monospace; font-size: 11px; }
+ </style>
+</head>
+<body>
+ <h2>Computer Pulse — Image Processing & Asset Auditor</h2>
+ <div class="container">
+ <div class="card">
+ <h3>1. Upload Media Asset</h3>
+ <input type="file" id="imageInput" accept="image/*"><br><br>
+ <canvas id="mainCanvas"></canvas>
+ </div>
+ <div class="card">
+ <h3>2. Algorithmic Transformations</h3>
+ <button class="btn" onclick="applyFilter('reset')">Reset</button>
+ <button class="btn" onclick="applyFilter('grayscale')">Grayscale
+(Luminance)</button>
+ <button class="btn" onclick="applyFilter('invert')">Invert</button>
+ <button class="btn" onclick="applyFilter('brighten')">Brighten (+30)</button>
+ <button class="btn" onclick="applyFilter('threshold')">Binary Threshold</button>
+ <h3>3. Media Asset Audit Log</h3>
+ <p>Copy and paste this log block into <code>data/image_assets.log</code>:</p>
+ <textarea id="logOutput" readonly></textarea>
+ </div>
+ </div>
+ <script>
+ const imageInput = document.getElementById('imageInput');
+ const canvas = document.getElementById('mainCanvas');
+ const ctx = canvas.getContext('2d');
+ const logOutput = document.getElementById('logOutput');
+ let originalImgData = null;
+ let currentFile = null;
+ imageInput.addEventListener('change', (e) => {
+ const file = e.target.files[0];
+ if (!file) return;
+ currentFile = file;
+ const img = new Image();
+ img.onload = () => {
+ canvas.width = img.width;
+ canvas.height = img.height;
+ ctx.drawImage(img, 0, 0);
+ originalImgData = ctx.getImageData(0, 0, img.width, img.height);
+ generateAuditLog(file, img.width, img.height, 'Original');
+ };
+ img.src = URL.createObjectURL(file);
+ });
+ function applyFilter(filterType) {
+ if (!originalImgData) return;
+ const imgData = new ImageData(
+ new Uint8ClampedArray(originalImgData.data),
+ originalImgData.width,
+ originalImgData.height
+ );
+ const data = imgData.data;
+ for (let i = 0; i < data.length; i += 4) {
+ let r = data[i], g = data[i+1], b = data[i+2];
+ if (filterType === 'grayscale') {
+ // ITU-R BT.601 Luminance Formula
+ let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+ data[i] = data[i+1] = data[i+2] = gray;
+ } else if (filterType === 'invert') {
+ data[i] = 255 - r;
+ data[i+1] = 255 - g;
+ data[i+2] = 255 - b;
+ } else if (filterType === 'brighten') {
+ data[i] = Math.min(255, r + 30);
+ data[i+1] = Math.min(255, g + 30);
+ data[i+2] = Math.min(255, b + 30);
+ } else if (filterType === 'threshold') {
+ let gray = 0.299 * r + 0.587 * g + 0.114 * b;
+ let binary = gray >= 128 ? 255 : 0;
+ data[i] = data[i+1] = data[i+2] = binary;
+ }
+ }
+ ctx.putImageData(imgData, 0, 0);
+ generateAuditLog(currentFile, canvas.width, canvas.height, filterType);
+ }
+ function generateAuditLog(file, w, h, activeFilter) {
+ const rawBytes = file.size;
+ const uncompressedBytes = w * h * 4;
+ const compressionRatio = (100 - (rawBytes / uncompressedBytes * 100)).toFixed(2);
+ const timeStamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+ const log = `====================================================
+ COMPUTER PULSE - IMAGE ASSET LOG
+====================================================
+Timestamp : ${timeStamp}
+File Name : ${file.name}
+MIME Type : ${file.type}
+Dimensions : ${w} x ${h} pixels (${(w*h/1000000).toFixed(2)} MP)
+Disk File Size : ${(rawBytes / 1024).toFixed(2)} KB
+Uncompressed RGBA : ${(uncompressedBytes / 1024 / 1024).toFixed(2)} MB
+Disk Storage Saving : ${compressionRatio}%
+Active Processing : ${activeFilter}
+====================================================`;
+ logOutput.value = log;
+ }
+ </script>
+</body>
+</html>
