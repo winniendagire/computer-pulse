@@ -1,0 +1,31 @@
+﻿====================================================
+           COMPUTER PULSE - HARDWARE & NETWORK LOG   
+====================================================
+Timestamp          : 2026-09-21 18:54:02
+Active Processes   : 225 running processes
+CPU Utilization    : 4% load
+----------------------------------------------------
+Top 3 Memory-Consuming Processes:
+
+Name               RAM_MB
+----               ------
+Memory Compression 442.23
+explorer           355.12
+AvastSvc           320.44
+
+
+
+----------------------------------------------------
+Disk Storage Breakdown:
+
+DeviceID FreeGB TotalGB
+-------- ------ -------
+C:       165.86   237.4
+
+
+
+----------------------------------------------------
+Network Diagnostics:
+Active IPv4 Address: 10.9.4.222
+Internet Latency   : Host Unreachable (Target: 8.8.8.8)
+====================================================
